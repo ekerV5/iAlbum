@@ -1,0 +1,52 @@
+PHONY := __build
+__build:
+
+obj-y := 
+subdir-y :=	
+
+#将当前目录的Makefile包含进来，初始化obj-y
+include Makefile
+
+#筛选出当前目录的目标变量中的子目录，并且去掉“/”
+__subdir-y := $(patsubst %/,%,$(filter %/, $(obj-y)))
+subdir-y += $(__subdir-y)
+
+#对于subdir-y里面的每一个值(目录),增加一个相应的目录/built-in.o的变量值
+subdir_objs := $(foreach f,$(subdir-y),$(f)/built-in.o)
+
+#得到obj-y中的.o文件
+cur_objs := $(filter-out %/, $(obj-y))
+#对于所有的.o文件，定义它的依赖文件名
+dep_files := $(foreach f,$(cur_objs),.$(f).d)
+dep_files := $(wildcard $(dep_files))
+
+#根据依赖文件名，判断依赖文件是否存在，存在就包含就来
+ifneq ($(dep_files),)
+    include $(dep_files)
+endif
+
+#将$(subdir-y)也加入到变量PHONY中
+PHONY += $(subdir-y)
+
+#第一个规则
+__build : $(subdir-y) built-in.o
+
+#第一个规则的第一个依赖规则
+$(subdir-y):
+	make -C $@ -f $(TOPDIR)/Makefile.build
+#依次进入该子目录变量里面存储的值，使用的Makefile.build进行编译
+
+#第一个规则的第二个依赖规则
+built-in.o : $(cur_objs) $(subdir_objs)
+	$(LD) -r -o $@ $^
+#该规则的命令:将该目录下的.o和$(subdir_obj)打包成built-in.o文件
+
+dep_file = .$@.d
+
+#第一个规则的第二个依赖规则的依赖规则
+%.o : %.CC
+	$(CC) $(CFLAGS) -Wp,-MD,$(dep_file) -c -o $@ $<
+#用于将目录下所有的.c文件编译成.o文件
+
+#将PHONY声明为伪目标
+.PHONY : $(PHONY)
