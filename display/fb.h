@@ -13,5 +13,6 @@
 int fb_open(void);
 void fb_close(void);
 void fb_draw_background(unsigned int width, unsigned int height, unsigned int color);
+void fb_draw_picture(const unsigned char *pdata, unsigned int width, unsigned int height);
 
 #endif

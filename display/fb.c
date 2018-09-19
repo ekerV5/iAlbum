@@ -80,3 +80,61 @@ void fb_draw_background(unsigned int width, unsigned int height, unsigned int co
 		}
 	}
 }
+
+// 绘制图片，格式：RGB888 24位真彩，16-23位为红色域，8-15位为绿色域，0-7位为蓝色域。
+// 图片数据在数组中是按照“红、绿、蓝”的顺序存储的。
+void fb_draw_picture(const unsigned char *pdata, unsigned int width, unsigned int height)
+{
+	unsigned int index, x, y;
+	
+	if(width <= WIDTH && height <= HEIGHT)
+	{
+		for(y=0; y<height; y++)
+		{
+			for(x=0; x<width; x++)
+			{
+				index = 3 * (width * y + x);
+				*pfb = ((pdata[index+0]<<16) | (pdata[index+1]<<8)| (pdata[index+2]<<0));
+				pfb++;
+			}
+			pfb += (WIDTH - width);
+		}
+	}
+	else if(width <= WIDTH && height > HEIGHT)
+	{
+		for(y=0; y<HEIGHT; y++)
+		{
+			for(x=0; x<width; x++)
+			{
+				index = 3 * (width * y + x);
+				*pfb = ((pdata[index+0]<<16) | (pdata[index+1]<<8)| (pdata[index+2]<<0));
+				pfb++;
+			}
+			pfb += (WIDTH - width);
+		}
+	}
+	else if(width > WIDTH && height <= HEIGHT)
+	{
+		for(y=0; y<height; y++)
+		{
+			for(x=0; x<WIDTH; x++)
+			{
+				index = 3 * (width * y + x);
+				*pfb = ((pdata[index+0]<<16) | (pdata[index+1]<<8)| (pdata[index+2]<<0));
+				pfb++;
+			}
+		}
+	}
+	else if(width > WIDTH && height > HEIGHT)
+	{
+		for(y=0; y<HEIGHT; y++)
+		{
+			for(x=0; x<WIDTH; x++)
+			{
+				index = 3 * (width * y + x);
+				*pfb = ((pdata[index+0]<<16) | (pdata[index+1]<<8)| (pdata[index+2]<<0));
+				pfb++;
+			}
+		}
+	}
+}
